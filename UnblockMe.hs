@@ -8,8 +8,11 @@
 import Data.List
 import System.IO
 import Data.Hashable
-import qualified Data.HashTable.IO as H
+import Data.String
 
+
+
+{-}
 --Andmetüüp mänguseisu hoidmiseks
 type Point = (Int, Int)
 data Table = T Point Point [(Int,[Point])]
@@ -52,4 +55,13 @@ solve :: Table -> IO [Move]
 solve l = do
  ht <- H.new 
  bfsGameTree ht [(mkGameTree l ,[])]
+-}
+
+loefail :: String -> IO String
+loefail nimi = do
+	tere <- readFile nimi
+	return tere
+
+
+
  
