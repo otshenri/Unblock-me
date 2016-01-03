@@ -9,14 +9,11 @@ import Data.List
 import System.IO
 import Data.Hashable
 import Data.String
+import System.IO.Unsafe 
 
 
 
 {-}
---Andmetüüp mänguseisu hoidmiseks
-type Point = (Int, Int)
-data Table = T Point Point [(Int,[Point])]
-
 --Sõne mängulauaks ja vastupidi
 readT :: Point -> String -> Maybe Table
 showT :: Table -> String
@@ -57,10 +54,19 @@ solve l = do
  bfsGameTree ht [(mkGameTree l ,[])]
 -}
 
-loefail :: String -> IO String
-loefail nimi = do
-	tere <- readFile nimi
-	return tere
+
+
+type Point = (Int, Int)
+data Table = T Point Point [(Int,[Point])]
+
+
+main = do  
+	contents <- readFile "laud.txt"
+	let linesOfContent = lines contents
+	return linesOfContent
+
+
+
 
 
 
