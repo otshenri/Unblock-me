@@ -61,7 +61,7 @@ showT tabel =
       sona = "foo"
   in show(Data.List.length(update 2 sona $ fromList listike))-}
   --show(x) ++ show(y) ++ show(x2) ++ show (y2) ++ show(blokid)
-  let read = addBlocksToStringList(createStringList tabel) 
+  let read = addBlocksToStringList tabel (createStringList tabel) 
   in intercalate "\n" read
 
 createStringList:: Table -> [String]
@@ -82,7 +82,7 @@ addBlocksToStringList (T (x,y) (x2, y2) (t:ts)) sisu =
   
 addOneBlock:: Int -> Point -> [String] -> [String]
 addOneBlock number (x,y) listike =
-  update y (update x (show(number) !! 0) $ fromList (listike !! y)) $ fromList listike
+  update y (update x (show(number) !! 0) ( fromList (listike !! y))) ( fromList listike)
 
 readT :: String -> Maybe Table
 readT sisu =
