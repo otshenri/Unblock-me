@@ -11,7 +11,7 @@ import System.IO
 import Data.Hashable
 import Data.String
 import System.IO.Unsafe
-import Data.Sequence
+--import Data.Sequence
 
 {-}
 
@@ -75,14 +75,18 @@ createStringList (T (x,y) (x2, y2) blokid) =
      in esimeneRida : (readTyhikuni ++ [tyhikuRida] ++ readTyhikust) ++ [esimeneRida]
   
 addBlocksToStringList:: Table -> [String] -> [String]
+addBlocksToStringList (T (x,y) (x2, y2) []) sisu = sisu
 addBlocksToStringList (T (x,y) (x2, y2) (t:ts)) sisu = 
   let number = fst t
       punktiList = snd t
-  in addOneBlock number (punktiList !! 0) sisu
+  in addBlocksToStringList (T (x,y) (x2, y2) ts)(addOneBlock number (punktiList !! 0) sisu)
   
 addOneBlock:: Int -> Point -> [String] -> [String]
 addOneBlock number (x,y) listike =
-  update y (update x (show(number) !! 0) ( fromList (listike !! y))) ( fromList listike)
+  let uus = take x (listike !! y) ++ [(show(number) !! 0)] ++ drop (x + 1) (listike !! y)
+  in take y listike ++ [uus] ++ drop (y + 1) listike
+  --update x (show(number) !! 0) ( fromList (listike !! y))
+  --update y (muudetav) ( fromList listike)
 
 readT :: String -> Maybe Table
 readT sisu =
