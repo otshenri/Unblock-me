@@ -79,12 +79,15 @@ addBlocksToStringList (T (x,y) (x2, y2) []) sisu = sisu
 addBlocksToStringList (T (x,y) (x2, y2) (t:ts)) sisu = 
   let number = fst t
       punktiList = snd t
-  in addBlocksToStringList (T (x,y) (x2, y2) ts)(addOneBlock number (punktiList !! 0) sisu)
+  in addBlocksToStringList (T (x,y) (x2, y2) ts)(addOneBlock number punktiList sisu)
   
-addOneBlock:: Int -> Point -> [String] -> [String]
-addOneBlock number (x,y) listike =
-  let uus = take x (listike !! y) ++ [(show(number) !! 0)] ++ drop (x + 1) (listike !! y)
-  in take y listike ++ [uus] ++ drop (y + 1) listike
+addOneBlock:: Int -> [Point] -> [String] -> [String]
+addOneBlock _ [] listike = listike
+addOneBlock number (x:xs) listike =
+  let xCordinate = fst x
+      yCordinate = snd x
+  in let uus = take xCordinate (listike !! yCordinate) ++ [(show(number) !! 0)] ++ drop (xCordinate + 1) (listike !! yCordinate)
+     in addOneBlock number xs (take yCordinate listike ++ [uus] ++ drop (yCordinate + 1) listike)
   --update x (show(number) !! 0) ( fromList (listike !! y))
   --update y (muudetav) ( fromList listike)
 
