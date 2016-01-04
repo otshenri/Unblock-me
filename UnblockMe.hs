@@ -57,10 +57,6 @@ data Table = T Point Point [(Int,[Point])]
 --Sõne mängulauaks ja vastupidi
 showT :: Table -> String
 showT tabel = 
-  {-let listike = ["bar", "bar", "bar"]
-      sona = "foo"
-  in show(Data.List.length(update 2 sona $ fromList listike))-}
-  --show(x) ++ show(y) ++ show(x2) ++ show (y2) ++ show(blokid)
   let read = addBlocksToStringList tabel (createStringList tabel) 
   in intercalate "\n" read
 
@@ -88,8 +84,6 @@ addOneBlock number (x:xs) listike =
       yCordinate = snd x
   in let uus = take xCordinate (listike !! yCordinate) ++ [(show(number) !! 0)] ++ drop (xCordinate + 1) (listike !! yCordinate)
      in addOneBlock number xs (take yCordinate listike ++ [uus] ++ drop (yCordinate + 1) listike)
-  --update x (show(number) !! 0) ( fromList (listike !! y))
-  --update y (muudetav) ( fromList listike)
 
 readT :: String -> Maybe Table
 readT sisu =
