@@ -6,17 +6,14 @@
 --
 --
 import Data.List
+import Data.Char
 import System.IO
 import Data.Hashable
 import Data.String
-import System.IO.Unsafe 
-
-
+import System.IO.Unsafe
+import Data.Sequence
 
 {-}
---Sõne mängulauaks ja vastupidi
-readT :: Point -> String -> Maybe Table
-showT :: Table -> String
 
 --Nihutused
 data PMove = H Int | V Int 
@@ -54,16 +51,92 @@ solve l = do
  bfsGameTree ht [(mkGameTree l ,[])]
 -}
 
-
-
 type Point = (Int, Int)
 data Table = T Point Point [(Int,[Point])]
 
+--Sõne mängulauaks ja vastupidi
+showT :: Table -> String
+showT tabel = 
+  {-let listike = ["bar", "bar", "bar"]
+      sona = "foo"
+  in show(Data.List.length(update 2 sona $ fromList listike))-}
+  --show(x) ++ show(y) ++ show(x2) ++ show (y2) ++ show(blokid)
+  let read = addBlocksToStringList(createStringList tabel) 
+  in intercalate "\n" read
+
+createStringList:: Table -> [String]
+createStringList (T (x,y) (x2, y2) blokid) = 
+  let esimeneRida = Data.List.take (x+1) (repeat '#')
+      trell = '#'
+      tyhikud = Data.List.take (x-1) (repeat ' ')
+  in let readTyhikuni = Data.List.take (y2-1) (repeat (trell: tyhikud ++ [trell]))
+         tyhikuRida = trell: tyhikud ++ [' ']
+         readTyhikust = Data.List.take ((y-2)-(y2-1)) (repeat (trell: tyhikud ++ [trell]))
+     in esimeneRida : (readTyhikuni ++ [tyhikuRida] ++ readTyhikust) ++ [esimeneRida]
+  
+addBlocksToStringList:: Table -> [String] -> [String]
+addBlocksToStringList (T (x,y) (x2, y2) (t:ts)) sisu = 
+  let number = fst t
+      punktiList = snd t
+  in addOneBlock number (punktiList !! 0) sisu
+  
+addOneBlock:: Int -> Point -> [String] -> [String]
+addOneBlock number (x,y) listike =
+  update y (update x (show(number) !! 0) $ fromList (listike !! y)) $ fromList listike
+
+readT :: String -> Maybe Table
+readT sisu =
+  let suurus = getSize sisu
+      auk = getHole 0 (lines sisu)
+      blokid = getBlocks 0 sisu
+  in Just(T suurus auk blokid)
+
+getSize:: String -> Point
+getSize sisu =
+  let all@x:xs = lines sisu
+  in let lauakorgus = (Data.List.length all)-1
+         laualaius = (Data.List.length x)-1
+     in (laualaius, lauakorgus)
+
+getHole:: Int -> [String] -> Point
+getHole reanumber (x:xs) =
+  if last x == ' '
+    then 
+    let xCordinate = (Data.List.length x) -1
+        yCordinate = reanumber
+    in (xCordinate, yCordinate)
+    else getHole (reanumber+1) xs
+
+getBlocks:: Int -> String -> [(Int,[Point])]
+getBlocks n sisu =
+  if fst (getTuple n (lines sisu)) == -1 -- kui tuple esimene element on -1 siis järelikult numbrid otsas ja lõpetame
+    then []
+    else getTuple n (lines sisu) : getBlocks (n+1) sisu
+  
+
+getTuple:: Int -> [String] -> (Int,[Point])
+getTuple number sisu = 
+  if getPointArray (0,0) number sisu /= [] -- 
+    then (number, (getPointArray (0,0) number sisu))
+    else (-1, []) -- panen -1 tuple esimeseks liikmeks kui selle numbriga blokke enam ei leidnud
+
+getPointArray:: Point -> Int -> [String] -> [Point]
+getPointArray _ _ [] = []
+getPointArray (x,y) number (t:ts) =
+  getPointsFromSingleRow (x,y) number t ++ getPointArray (x, y+1) number ts
+  
+getPointsFromSingleRow:: Point -> Int -> [Char] -> [Point]
+getPointsFromSingleRow _ _ [] = []
+getPointsFromSingleRow (x,y) number (t:ts) = 
+  if [t] == show(number)
+    then (x,y) : getPointsFromSingleRow (x+1,y) number ts
+    else getPointsFromSingleRow (x+1,y) number ts
 
 main = do  
-	contents <- readFile "laud.txt"
-	let linesOfContent = lines contents
-	return linesOfContent
+  contents <- readFile "laud.txt"
+  let Just(tabel) = readT contents
+  let tabel2 = T (1,2) (3,4) [(5,[(6,7)])]
+  putStrLn (showT tabel)
 
 
 
