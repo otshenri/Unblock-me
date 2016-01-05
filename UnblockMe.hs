@@ -207,7 +207,7 @@ rekurU :: [Point] -> Point -> Point
 rekurU [] (x,y) = (x,y-1) 
 rekurU ((a,b):hs) (x,y) =  
   if x /= a
-    then error "Plokk on horistontaalis või mitte sirge - ei saa liigutada üles"
+    then ((-1), (-1))--error "Plokk on horistontaalis või mitte sirge - ei saa liigutada üles"
     else if b < y
       then rekurU hs (a,b)
       else rekurU hs (x,y) 
@@ -217,7 +217,7 @@ rekurD :: [Point] -> Point -> Point
 rekurD [] (x,y) = (x,y+1) 
 rekurD ((a,b):hs) (x,y) =  
   if x /= a
-    then error "Plokk on horistontaalis või mitte sirge - ei saa liigutada alla"
+    then ((-1), (-1))--error "Plokk on horistontaalis või mitte sirge - ei saa liigutada alla"
     else if b > y
       then rekurD hs (a,b)
       else rekurD hs (x,y)
@@ -227,7 +227,7 @@ rekurL :: [Point] -> Point -> Point
 rekurL [] (x,y) = (x-1,y) 
 rekurL ((a,b):hs) (x,y) =  
   if y /= b
-    then error "Plokk on vertikaalis või mitte sirge - ei saa liigutada paremale"
+    then ((-1), (-1))--error "Plokk on vertikaalis või mitte sirge - ei saa liigutada paremale"
     else if a < x
       then rekurL hs (a,b)
       else rekurL hs (x,y)
@@ -237,7 +237,7 @@ rekurR :: [Point] -> Point -> Point
 rekurR [] (x,y) = (x+1,y) 
 rekurR ((a,b):hs) (x,y) =  
   if y /= b
-    then error "Plokk on vertikaalis või mitte sirge - ei saa liigutada vasakule"
+    then ((-1), (-1))--error "Plokk on vertikaalis või mitte sirge - ei saa liigutada vasakule"
     else if a > x
       then rekurR hs (a,b)
       else rekurR hs (x,y)
@@ -246,7 +246,7 @@ rekurR ((a,b):hs) (x,y) =
 
 kasPunktVaba :: Point -> [(Int,[Point])] -> Point -> Bool
 kasPunktVaba (x,y) [] (r,t) = 
-  if r == x || r == 0 || t == 0 || t == y
+  if r == x || r == 0 || t == 0 || t == y || r == (-1)
     then False
     else True
 kasPunktVaba (x,y) ((f,punnid):ws) (r,t) =  
@@ -339,19 +339,12 @@ main = do
   print vaartus
   print vaartus2
   putStrLn ((prindiTabel tabel))
-  --let Just(minutabel) = move (4, 'U') tabel
+  --let Just(minutabel) = move (2, 'D') tabel
   --putStrLn (prindiTabel minutabel)
   --putStrLn (showT minutabel)
   let valid = validMoves tabel
   print valid
-  --let kaspunn = testik tabel
-  --print (kaspunn (4,3))
   
-
-
-
-
-
 
  --Kas andmestruktuur on õige ja võidutingimus täidetud
 isValidTable :: Table -> Bool
