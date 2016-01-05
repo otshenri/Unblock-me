@@ -87,17 +87,16 @@ addOneBlock number (x:xs) listike =
 
 readT :: String -> Maybe Table
 readT sisu =
-  let suurus = getSize sisu
+  let suurus = getSize (lines sisu)
       auk = getHole 0 (lines sisu)
       blokid = getBlocks 0 sisu
   in Just(T suurus auk blokid)
 
-getSize:: String -> Point
-getSize sisu =
-  let all@x:xs = lines sisu
-  in let lauakorgus = (Data.List.length all)-1
-         laualaius = (Data.List.length x)-1
-     in (laualaius, lauakorgus)
+getSize:: [String] -> Point
+getSize (x:xs) =
+  let lauakorgus = (Data.List.length xs)
+      laualaius = (Data.List.length x)-1
+  in (laualaius, lauakorgus)
 
 getHole:: Int -> [String] -> Point
 getHole reanumber (x:xs) =
@@ -133,11 +132,17 @@ getPointsFromSingleRow (x,y) number (t:ts) =
     then (x,y) : getPointsFromSingleRow (x+1,y) number ts
     else getPointsFromSingleRow (x+1,y) number ts
 
+--for debugging
+prindiTabel:: Table -> String
+prindiTabel (T (x,y) (x2, y2) blokid) =
+  show(x) ++ show(y) ++ show(x2) ++ show(y2) ++ show(blokid)
+
 main = do  
   contents <- readFile "laud.txt"
   let Just(tabel) = readT contents
   let tabel2 = T (1,2) (3,4) [(5,[(6,7)])]
   putStrLn (showT tabel)
+  putStrLn (prindiTabel tabel)
 
 
 
