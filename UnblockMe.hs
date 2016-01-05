@@ -99,6 +99,7 @@ getSize (x:xs) =
   in (laualaius, lauakorgus)
 
 getHole:: Int -> [String] -> Point
+getHole reanumber [] = (0,0)
 getHole reanumber (x:xs) =
   if last x == ' '
     then 
@@ -143,7 +144,10 @@ main = do
   let tabel2 = T (1,2) (3,4) [(5,[(6,7)])]
   putStrLn (showT tabel)
   putStrLn (prindiTabel tabel)
-
+  let vaartus = winCond tabel
+  let vaartus2 = isValidTable tabel
+  print vaartus
+  print vaartus2
 
 
 
