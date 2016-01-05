@@ -155,13 +155,13 @@ move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) koik@(w:ws)) =
       else error "Ei saa üles liigutada"
     'D' -> if validatorD tabeel koik blokinimi == True
       then Just(liigutamineD blokinimi tabeel []) 
-      else error "D"
+      else error "Ei saa alla liigutada"
     'R' -> if validatorR tabeel koik blokinimi == True
-      then Just(tabeel)
-      else error "R"
+      then Just(liigutamineR blokinimi tabeel [])
+      else error "Ei saa paremale liigutada"
     'L' -> if validatorL tabeel koik blokinimi == True
-      then Just(tabeel)
-      else error "L"
+      then Just(liigutamineL blokinimi tabeel [])
+      else error "Ei saa vasakule liigutada"
     _ -> error "Vale suund - suundadeks on U, D, R ja L"
 
 --------------------------------------------------------------------
@@ -198,7 +198,7 @@ validatorL (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
 validatorL (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
   if f == nimi
     then kasPunktVaba (x,y) listike (rekurL ((a,b):hs) (0, b)) 
-    else validatorU (T (x,y) (x2, y2) ws) listike nimi 
+    else validatorL (T (x,y) (x2, y2) ws) listike nimi 
 
 
 -----------------------------------------------------------------------------------
@@ -246,7 +246,7 @@ rekurL ((a,b):hs) (x,y) =
 
 kasPunktVaba :: Point -> [(Int,[Point])] -> Point -> Bool
 kasPunktVaba (x,y) [] (r,t) = 
-  if r >= x-1 || r == 0 || t == 0 || t >= x-1
+  if r == x || r == 0 || t == 0 || t == y
     then False
     else True
 kasPunktVaba (x,y) ((f,punnid):ws) (r,t) =  
@@ -282,12 +282,41 @@ liigutamineD :: Int -> Table -> [(Int,[Point])] -> Table
 liigutamineD nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
   if f == nimi 
     then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineD punnid))] ++ ws))
-    else liigutamineU nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
+    else liigutamineD nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
 
 
 asendamineD :: [Point] -> [Point]
 asendamineD [] = []
 asendamineD ((a,b):ws) = [(a, b+1)] ++ asendamineD ws
+
+
+---------------------------------------------------------------------------
+
+liigutamineR :: Int -> Table -> [(Int,[Point])] -> Table
+liigutamineR nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
+  if f == nimi 
+    then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineR punnid))] ++ ws))
+    else liigutamineR nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
+
+
+asendamineR :: [Point] -> [Point]
+asendamineR [] = []
+asendamineR ((a,b):ws) = [(a-1, b)] ++ asendamineR ws
+
+
+---------------------------------------------------------------------------
+
+
+liigutamineL :: Int -> Table -> [(Int,[Point])] -> Table
+liigutamineL nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
+  if f == nimi 
+    then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineL punnid))] ++ ws))
+    else liigutamineL nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
+
+
+asendamineL :: [Point] -> [Point]
+asendamineL [] = []
+asendamineL ((a,b):ws) = [(a+1, b)] ++ asendamineL ws
 
 
 ---------------------------------------------------------------------------
@@ -310,7 +339,7 @@ main = do
   print vaartus
   print vaartus2
   putStrLn ((prindiTabel tabel))
-  let Just(minutabel) = move (2, 'U') tabel
+  let Just(minutabel) = move (4, 'L') tabel
   putStrLn (prindiTabel minutabel)
   putStrLn (showT minutabel)
   --let kaspunn = testik tabel
