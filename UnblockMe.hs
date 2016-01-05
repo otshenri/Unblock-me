@@ -11,45 +11,7 @@ import System.IO
 import Data.Hashable
 import Data.String
 import System.IO.Unsafe
---import Data.Sequence
 
-{-}
-
---Nihutused
-data PMove = H Int | V Int 
-type Move  = (Int, PMove)
-moveOne ::  Move  -> Table -> Maybe Table
-move    :: [Move] -> Table -> Maybe Table
-
---Kas andmestruktuur on õige ja võidutingimus täidetud
-isValidTable :: Table -> Bool
-winCond      :: Table -> Bool
-
---Võimalikud liigutsed
-validMoves :: Table -> [Move]
-
---Mängupuu kõikide liigutustega
-data GameTree = Win Table | Moves Table [(Move, GameTree)] 
-
---Läbitakse mängupuu laiuti kuni leitakse võitev seisund
-mkGameTree :: Table -> GameTree
-
---Arvutatakse järgnev mängupuude tase
---Siin võetakse list mängupuid ja tagastatakse list kus igas sisendis olevas mängupuus on tehtud üks samm.
---Teiste sõnadega, võtab mängupuudes järgmise taseme
-bfsGameTreeStep :: [(GameTree,[Move])] -> [(GameTree,[Move])]
-
---Korduste väljafiltreerimine
-type HashTable k v = H.CuckooHashTable k v
-
-bfsGameTree :: HashTable GameTree [Move] -> [(GameTree,[Move])] -> IO [Move]
-
---Lahendamine
-solve :: Table -> IO [Move]
-solve l = do
- ht <- H.new 
- bfsGameTree ht [(mkGameTree l ,[])]
--}
 
 type Point = (Int, Int)
 data Table = T Point Point [(Int,[Point])]
@@ -328,23 +290,41 @@ testik:: Table -> Point -> Bool
 testik (T (x,y) (x2, y2) blokid) (t,t1) = 
   kasPunktVaba (x,y) blokid (t,t1)
   
+
+
+mangimine tabel = do
+  putStrLn (showT tabel)
+  let validmoved = validMoves tabel
+  print validmoved
+  putStrLn("Sisesta bloki number, mida soovid liigutada: ")
+  s <- getLine
+  let d = (read s :: Int)
+  putStrLn("Sisesta suuna täht - kas U(üles), D(alla), L(vasakule), R(paremale): ")
+  f <- getLine
+  let g = head f
+
   
-main = do  
+  if (d, g) `elem` validmoved
+    then let Just(tabel2) = move(d, g) tabel
+         in if winCond tabel2 == True
+           then putStrLn("Võitsid")
+           else mangimine tabel2
+    else mangimine tabel
+
+{-}
+  let Just(tabel2) = move(d, g) tabel
+  if winCond tabel2 == True
+    then putStrLn("Võitsid")
+    else mangimine tabel2
+  -}
+
+main = do
   contents <- readFile "laud.txt"
   let Just(tabel) = readT contents
-  putStrLn (showT tabel)
-  putStrLn (prindiTabel tabel)
-  let vaartus = winCond tabel
-  let vaartus2 = isValidTable tabel
-  print vaartus
-  print vaartus2
-  putStrLn ((prindiTabel tabel))
-  --let Just(minutabel) = move (2, 'D') tabel
-  --putStrLn (prindiTabel minutabel)
-  --putStrLn (showT minutabel)
-  let valid = validMoves tabel
-  print valid
-  
+  mangimine tabel
+
+
+-------------------------------------------------------------------  
 
  --Kas andmestruktuur on õige ja võidutingimus täidetud
 isValidTable :: Table -> Bool
