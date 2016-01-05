@@ -150,7 +150,7 @@ move :: Move -> Table -> Maybe Table
 move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) (w:ws)) = 
   case suund of
     'U' -> if validatorU tabeel blokinimi == True
-      then Just(liigutamineU blokinimi tabeel (w:ws))
+      then Just(liigutamineU blokinimi tabeel [])
       else error "U"
     'D' -> if validatorD tabeel blokinimi == True
       then Just(tabeel) 
@@ -178,33 +178,34 @@ rekurU [] (x,y) = (x,y-1)
 rekurU ((a,b):hs) (x,y) =  
   if x /= a
     then error "Plokk on horistontaalis või mitte sirge - ei saa liigutada üles"
-    else if b < x 
+    else if b < y
       then rekurU hs (a,b)
       else rekurU hs (x,y) 
 
 
 
 kasPunktVaba :: Point -> [(Int,[Point])] -> Point -> Bool
-kasPunktVaba (x,y) [] (r,t) = True 
-kasPunktVaba (x,y) ((f,punnid):ws) (r,t) = 
+kasPunktVaba (x,y) [] (r,t) = 
   if r >= x-1 || r == 0 || t == 0 || t >= x-1
-    then error "Läheb mänguplatsist välja"
-    else if abiRek punnid (r,t) == True
-      then kasPunktVaba (x,y) ws (r,t)
-      else error "Soovitud liigutus pole võimalik"
+    then error "Läheb välja"
+    else True
+kasPunktVaba (x,y) ((f,punnid):ws) (r,t) =  
+  if abiRek punnid (r,t) == False
+    then error "Soovitud liigutus pole võimalik"
+    else kasPunktVaba (x,y) ws (r,t)
+  
 
 
 abiRek :: [Point] -> Point -> Bool
 abiRek [] (x,y) = True
 abiRek ((a,b):hs) (x,y) = 
-  if x == a && y == b 
+  if x == a && y == b
     then False
     else abiRek hs (x,y)
 
 
 
 liigutamineU :: Int -> Table -> [(Int,[Point])] -> Table
---liigutamineU nimi (T (x,y) (x2,y2) []) irw = []
 liigutamineU nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
   if f == nimi 
     then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineU punnid))] ++ ws))
@@ -213,7 +214,7 @@ liigutamineU nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
 
 asendamineU :: [Point] -> [Point]
 asendamineU [] = []
-asendamineU ((a,b):ws) = [] ++ [(a, b-1)] ++ asendamineU ws
+asendamineU ((a,b):ws) = [(a, b-1)] ++ asendamineU ws
 
 
 
@@ -232,7 +233,7 @@ main = do
   let Just(tabel) = readT contents
   putStrLn (showT tabel)
   putStrLn ((prindiTabel tabel))
-  let Just(minutabel) = move (4, 'U') tabel
+  let Just(minutabel) = move (2, 'U') tabel
   putStrLn (prindiTabel minutabel)
   putStrLn (showT minutabel)
 
