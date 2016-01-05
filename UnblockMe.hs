@@ -339,9 +339,11 @@ main = do
   print vaartus
   print vaartus2
   putStrLn ((prindiTabel tabel))
-  let Just(minutabel) = move (4, 'U') tabel
-  putStrLn (prindiTabel minutabel)
-  putStrLn (showT minutabel)
+  --let Just(minutabel) = move (4, 'U') tabel
+  --putStrLn (prindiTabel minutabel)
+  --putStrLn (showT minutabel)
+  let valid = validMoves tabel
+  print valid
   --let kaspunn = testik tabel
   --print (kaspunn (4,3))
   
@@ -398,9 +400,9 @@ getValidMoves validmoved tabel@(T (t,y) (x2, y2) blokid) (x:xs) =
     else if validatorD tabel blokid x
       then getValidMoves ((x, 'D') : validmoved) tabel xs
       else if validatorR tabel blokid x
-        then getValidMoves ((x, 'L') : validmoved) tabel xs
+        then getValidMoves ((x, 'R') : validmoved) tabel xs
         else if validatorL tabel blokid x
-          then getValidMoves ((x, 'R') : validmoved) tabel xs
+          then getValidMoves ((x, 'L') : validmoved) tabel xs
           else getValidMoves validmoved tabel xs
   
 getBlockNumbers:: [(Int,[Point])]-> [Int] -> [Int]
