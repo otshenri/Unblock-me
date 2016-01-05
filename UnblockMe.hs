@@ -16,7 +16,7 @@ import System.IO.Unsafe
 type Point = (Int, Int)
 data Table = T Point Point [(Int,[Point])]
 
---Sõne mängulauaks ja vastupidi
+--Mängulaud sõneks
 showT :: Table -> String
 showT tabel = 
   let read = addBlocksToStringList tabel (createStringList tabel) 
@@ -47,7 +47,7 @@ addOneBlock number (x:xs) listike =
   in let uus = take xCordinate (listike !! yCordinate) ++ [(show(number) !! 0)] ++ drop (xCordinate + 1) (listike !! yCordinate)
      in addOneBlock number xs (take yCordinate listike ++ [uus] ++ drop (yCordinate + 1) listike)
 
-
+--Sõne mängulauaks
 -----------------------------------------------------------------------------------------------------------------
 
 readT :: String -> Maybe Table
@@ -107,7 +107,7 @@ prindiTabel (T (x,y) (x2, y2) blokid) =
   show(x) ++ show(y) ++ show(x2) ++ show(y2) ++ show(blokid)
 
 
-
+--valideerimine ja liigutamine
 type Move  = (Int, Char)
 move :: Move -> Table -> Maybe Table
 move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) koik@(w:ws)) = 
@@ -127,6 +127,7 @@ move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) koik@(w:ws)) =
     _ -> error "Vale suund - suundadeks on U, D, R ja L"
 
 --------------------------------------------------------------------
+--iga liigutuse valideerimismeetodid
 
 validatorU :: Table -> [(Int,[Point])] -> Int -> Bool
 validatorU (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
@@ -164,6 +165,7 @@ validatorR (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi =
 
 
 -----------------------------------------------------------------------------------
+--Leitakse punkt kuhu tahetakse vastava liigutusega blokki viia
 
 rekurU :: [Point] -> Point -> Point
 rekurU [] (x,y) = (x,y-1) 
@@ -205,6 +207,7 @@ rekurR ((a,b):hs) (x,y) =
       else rekurR hs (x,y)
 
 ------------------------------------------------------------------------
+--Kas eelnevalt leitud punkt on vaba
 
 kasPunktVaba :: Point -> [(Int,[Point])] -> Point -> Bool
 kasPunktVaba (x,y) [] (r,t) = 
@@ -225,6 +228,8 @@ abiRek ((a,b):hs) (x,y) =
     then False
     else abiRek hs (x,y)
 
+
+--Bloki liigutamine
 --------------------------------------------------------------------------------
 
 liigutamineU :: Int -> Table -> [(Int,[Point])] -> Table
@@ -285,7 +290,7 @@ asendamineR ((a,b):ws) = [(a+1, b)] ++ asendamineR ws
 ---------------------------------------------------------------------------
 
   
-
+--Mängimine
 
 mangimine tabel = do
   putStrLn (showT tabel)
@@ -316,13 +321,21 @@ mangimine tabel = do
 main = do
   contents <- readFile "laud.txt"
   let Just(tabel) = readT contents
+  putStrLn("Tere, mängite mänge UnBlock Me")
+  putStrLn("Mängu reeglid:")
+  putStrLn("1)Peate liigutama blokke reeglite järgi - püstiseid blokke üles/alla, külili blokke paremale/vasakule")
+  putStrLn("2)Võitmiseks peab olema blokk 00 mängulaua paremal asuva augu ees")
+  putStrLn("Lubatud käigud kuvatakse enne igat käiku ekraanil koos hetkel oleva mängulauaga")
+  putStrLn("Bloki number peab olema numbrilisel kujul mängulaual esinevate blokkide seast")
+  putStrLn("Bloki liigutamise suund peab olema kas U - üles, D - alla, R - paremale, L - vasakule")
+  putStrLn("Mängulaud loetakse failist laud.txt")
   mangimine tabel
 
 
 -------------------------------------------------------------------  
 
 
- --Kas andmestruktuur on õige ja võidutingimus täidetud
+ --Andmestruktuuri õigsuse kontroll
 isValidTable :: Table -> Bool
 isValidTable (T (x,y) (x2, y2) blokid) =
   if x2 == 0 || y2 == 0 || x<2 || y<2
@@ -344,6 +357,7 @@ checkYhePoindiListi (x,y) ((x2,y2):ts) =
    then False
    else checkYhePoindiListi (x,y) ts
 ---------------------------------------------------------------------------
+--Võidutingimuse täitmine
 winCond:: Table -> Bool
 winCond (T (x,y) (x2, y2) (t:ts)) = 
   let nullPunktid = snd t
@@ -356,6 +370,7 @@ winCondAbi (x,y) ((x2,y2):ts) =
     then True
     else winCondAbi (x,y) ts
 ---------------------------------------------------------------------------
+--Lubatud käikude saamine
 validMoves:: Table -> [Move]
 validMoves tabel@(T (x,y) (x2, y2) blokid) =
   let blokkideNumbrid = getBlockNumbers blokid []
