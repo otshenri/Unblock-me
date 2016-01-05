@@ -137,7 +137,7 @@ getPointsFromSingleRow (x,y) number (t:ts) =
     else getPointsFromSingleRow (x+1,y) number ts
 
 
------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 
 --for debugging
 prindiTabel:: Table -> String
@@ -148,31 +148,60 @@ prindiTabel (T (x,y) (x2, y2) blokid) =
 
 type Move  = (Int, Char)
 move :: Move -> Table -> Maybe Table
-move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) all@(w:ws)) = 
+move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) koik@(w:ws)) = 
   case suund of
-    'U' -> if validatorU tabeel all blokinimi == True
+    'U' -> if validatorU tabeel koik blokinimi == True
       then Just(liigutamineU blokinimi tabeel [])
-      else error "U"
-    'D' -> if validatorD tabeel blokinimi == True
-      then Just(tabeel) 
+      else error "Ei saa üles liigutada"
+    'D' -> if validatorD tabeel koik blokinimi == True
+      then Just(liigutamineD blokinimi tabeel []) 
       else error "D"
-    'R' -> if validatorR tabeel blokinimi == True
+    'R' -> if validatorR tabeel koik blokinimi == True
       then Just(tabeel)
       else error "R"
-    'L' -> if validatorL tabeel blokinimi == True
+    'L' -> if validatorL tabeel koik blokinimi == True
       then Just(tabeel)
       else error "L"
-    '_' -> error "Vale suund - suundadeks on U, D, R ja L"
+    _ -> error "Vale suund - suundadeks on U, D, R ja L"
 
-
+--------------------------------------------------------------------
 
 validatorU :: Table -> [(Int,[Point])] -> Int -> Bool
-
 validatorU (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
 validatorU (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
   if f == nimi
-    then kasPunktVaba (x,y) listike (rekurU ((a,b):hs) (a,999)) 
-    else validatorU (T (x,y) (x2, y2) ws) listike nimi
+    then kasPunktVaba (x,y) listike (rekurU ((a,b):hs) (a,999))  
+    else validatorU (T (x,y) (x2, y2) ws) listike nimi 
+
+
+
+validatorD :: Table -> [(Int,[Point])] -> Int -> Bool
+validatorD (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
+validatorD (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
+  if f == nimi
+    then kasPunktVaba (x,y) listike (rekurD ((a,b):hs) (a,0)) 
+    else validatorD (T (x,y) (x2, y2) ws) listike nimi 
+
+
+
+validatorR :: Table -> [(Int,[Point])] -> Int -> Bool
+validatorR (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
+validatorR (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
+  if f == nimi
+    then kasPunktVaba (x,y) listike (rekurR ((a,b):hs) (999, b)) 
+    else validatorR (T (x,y) (x2, y2) ws) listike nimi 
+
+
+
+validatorL :: Table -> [(Int,[Point])] -> Int -> Bool
+validatorL (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
+validatorL (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
+  if f == nimi
+    then kasPunktVaba (x,y) listike (rekurL ((a,b):hs) (0, b)) 
+    else validatorU (T (x,y) (x2, y2) ws) listike nimi 
+
+
+-----------------------------------------------------------------------------------
 
 rekurU :: [Point] -> Point -> Point
 rekurU [] (x,y) = (x,y-1) 
@@ -184,15 +213,45 @@ rekurU ((a,b):hs) (x,y) =
       else rekurU hs (x,y) 
 
 
+rekurD :: [Point] -> Point -> Point
+rekurD [] (x,y) = (x,y+1) 
+rekurD ((a,b):hs) (x,y) =  
+  if x /= a
+    then error "Plokk on horistontaalis või mitte sirge - ei saa liigutada alla"
+    else if b > y
+      then rekurD hs (a,b)
+      else rekurD hs (x,y)
+
+
+rekurR :: [Point] -> Point -> Point
+rekurR [] (x,y) = (x-1,y) 
+rekurR ((a,b):hs) (x,y) =  
+  if y /= b
+    then error "Plokk on vertikaalis või mitte sirge - ei saa liigutada paremale"
+    else if a < x
+      then rekurR hs (a,b)
+      else rekurR hs (x,y)
+
+
+rekurL :: [Point] -> Point -> Point
+rekurL [] (x,y) = (x+1,y) 
+rekurL ((a,b):hs) (x,y) =  
+  if y /= b
+    then error "Plokk on vertikaalis või mitte sirge - ei saa liigutada vasakule"
+    else if a > x
+      then rekurL hs (a,b)
+      else rekurL hs (x,y)
+
+------------------------------------------------------------------------
 
 kasPunktVaba :: Point -> [(Int,[Point])] -> Point -> Bool
 kasPunktVaba (x,y) [] (r,t) = 
   if r >= x-1 || r == 0 || t == 0 || t >= x-1
-    then error "Läheb välja"
+    then False
     else True
 kasPunktVaba (x,y) ((f,punnid):ws) (r,t) =  
   if abiRek punnid (r,t) == False
-    then error "Soovitud liigutus pole võimalik"
+    then False
     else kasPunktVaba (x,y) ws (r,t)
   
 
@@ -204,7 +263,7 @@ abiRek ((a,b):hs) (x,y) =
     then False
     else abiRek hs (x,y)
 
-
+--------------------------------------------------------------------------------
 
 liigutamineU :: Int -> Table -> [(Int,[Point])] -> Table
 liigutamineU nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
@@ -217,16 +276,24 @@ asendamineU :: [Point] -> [Point]
 asendamineU [] = []
 asendamineU ((a,b):ws) = [(a, b-1)] ++ asendamineU ws
 
+---------------------------------------------------------------------
+
+liigutamineD :: Int -> Table -> [(Int,[Point])] -> Table
+liigutamineD nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
+  if f == nimi 
+    then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineD punnid))] ++ ws))
+    else liigutamineU nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
 
 
-validatorD :: Table -> Int -> Bool
-validatorD (T (x,y) (x2, y2) (w:ws)) nimi = True
+asendamineD :: [Point] -> [Point]
+asendamineD [] = []
+asendamineD ((a,b):ws) = [(a, b+1)] ++ asendamineD ws
 
-validatorR :: Table -> Int -> Bool
-validatorR (T (x,y) (x2, y2) (w:ws)) nimi = True
 
-validatorL :: Table -> Int -> Bool
-validatorL (T (x,y) (x2, y2) (w:ws)) nimi = True
+---------------------------------------------------------------------------
+
+
+
 
 testik:: Table -> Point -> Bool
 testik (T (x,y) (x2, y2) blokid) (t,t1) = 
