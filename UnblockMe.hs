@@ -339,7 +339,7 @@ main = do
   print vaartus
   print vaartus2
   putStrLn ((prindiTabel tabel))
-  let Just(minutabel) = move (0, 'R') tabel
+  let Just(minutabel) = move (4, 'U') tabel
   putStrLn (prindiTabel minutabel)
   putStrLn (showT minutabel)
   --let kaspunn = testik tabel
@@ -384,3 +384,28 @@ winCondAbi (x,y) ((x2,y2):ts) =
   if (x-1)==x2 && y==y2
     then True
     else winCondAbi (x,y) ts
+
+validMoves:: Table -> [Move]
+validMoves tabel@(T (x,y) (x2, y2) blokid) =
+  let blokkideNumbrid = getBlockNumbers blokid []
+    in getValidMoves [] tabel blokkideNumbrid
+
+getValidMoves:: [Move] -> Table -> [Int] -> [Move]
+getValidMoves validmoved _ [] = validmoved
+getValidMoves validmoved tabel@(T (t,y) (x2, y2) blokid) (x:xs) =
+  if validatorU tabel blokid x
+    then getValidMoves ((x, 'U') : validmoved) tabel xs
+    else if validatorD tabel blokid x
+      then getValidMoves ((x, 'D') : validmoved) tabel xs
+      else if validatorR tabel blokid x
+        then getValidMoves ((x, 'L') : validmoved) tabel xs
+        else if validatorL tabel blokid x
+          then getValidMoves ((x, 'R') : validmoved) tabel xs
+          else getValidMoves validmoved tabel xs
+  
+getBlockNumbers:: [(Int,[Point])]-> [Int] -> [Int]
+getBlockNumbers [] listike = listike
+getBlockNumbers ((x,y):xs) listike =
+  if x `elem` listike
+    then getBlockNumbers xs listike
+    else getBlockNumbers xs (x : listike)
