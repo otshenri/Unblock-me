@@ -28,12 +28,6 @@ winCond      :: Table -> Bool
 --Võimalikud liigutsed
 validMoves :: Table -> [Move]
 
---Mängupuu kõikide liigutustega
-data GameTree = Win Table | Moves Table [(Move, GameTree)] 
-
---Läbitakse mängupuu laiuti kuni leitakse võitev seisund
-mkGameTree :: Table -> GameTree
-
 --Arvutatakse järgnev mängupuude tase
 --Siin võetakse list mängupuid ja tagastatakse list kus igas sisendis olevas mängupuus on tehtud üks samm.
 --Teiste sõnadega, võtab mängupuudes järgmise taseme
@@ -317,35 +311,8 @@ liigutamineR nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
 asendamineR :: [Point] -> [Point]
 asendamineR [] = []
 asendamineR ((a,b):ws) = [(a+1, b)] ++ asendamineR ws
-
-
+  
 ---------------------------------------------------------------------------
-
-
-
-
-testik:: Table -> Point -> Bool
-testik (T (x,y) (x2, y2) blokid) (t,t1) = 
-  kasPunktVaba (x,y) blokid (t,t1)
-  
-  
-main = do  
-  contents <- readFile "laud.txt"
-  let Just(tabel) = readT contents
-  putStrLn (showT tabel)
-  putStrLn (prindiTabel tabel)
-  let vaartus = winCond tabel
-  let vaartus2 = isValidTable tabel
-  print vaartus
-  print vaartus2
-  putStrLn ((prindiTabel tabel))
-  --let Just(minutabel) = move (2, 'D') tabel
-  --putStrLn (prindiTabel minutabel)
-  --putStrLn (showT minutabel)
-  let valid = validMoves tabel
-  print valid
-  
-
  --Kas andmestruktuur on õige ja võidutingimus täidetud
 isValidTable :: Table -> Bool
 isValidTable (T (x,y) (x2, y2) blokid) =
@@ -367,7 +334,7 @@ checkYhePoindiListi (x,y) ((x2,y2):ts) =
  if x <= x2 || y <= y2
    then False
    else checkYhePoindiListi (x,y) ts
-
+---------------------------------------------------------------------------
 winCond:: Table -> Bool
 winCond (T (x,y) (x2, y2) (t:ts)) = 
   let nullPunktid = snd t
@@ -379,7 +346,7 @@ winCondAbi (x,y) ((x2,y2):ts) =
   if (x-1)==x2 && y==y2
     then True
     else winCondAbi (x,y) ts
-
+---------------------------------------------------------------------------
 validMoves:: Table -> [Move]
 validMoves tabel@(T (x,y) (x2, y2) blokid) =
   let blokkideNumbrid = getBlockNumbers blokid []
@@ -387,15 +354,15 @@ validMoves tabel@(T (x,y) (x2, y2) blokid) =
 
 getValidMoves:: [Move] -> Table -> [Int] -> [Move]
 getValidMoves validmoved _ [] = validmoved
-getValidMoves validmoved tabel@(T (t,y) (x2, y2) blokid) (x:xs) =
-  if validatorU tabel blokid x
-    then getValidMoves ((x, 'U') : validmoved) tabel xs
-    else if validatorD tabel blokid x
-      then getValidMoves ((x, 'D') : validmoved) tabel xs
-      else if validatorR tabel blokid x
-        then getValidMoves ((x, 'R') : validmoved) tabel xs
-        else if validatorL tabel blokid x
-          then getValidMoves ((x, 'L') : validmoved) tabel xs
+getValidMoves validmoved tabel@(T (t,y) (x2, y2) blokid) all@(x:xs) =
+  if validatorU tabel blokid x && ((x, 'U') `elem` validmoved) == False
+    then getValidMoves ((x, 'U') : validmoved) tabel all
+    else if validatorD tabel blokid x && ((x, 'D') `elem` validmoved) == False
+      then getValidMoves ((x, 'D') : validmoved) tabel all
+      else if validatorR tabel blokid x && ((x, 'R') `elem` validmoved) == False
+        then getValidMoves ((x, 'R') : validmoved) tabel all
+        else if validatorL tabel blokid x && ((x, 'L') `elem` validmoved) == False
+          then getValidMoves ((x, 'L') : validmoved) tabel all
           else getValidMoves validmoved tabel xs
   
 getBlockNumbers:: [(Int,[Point])]-> [Int] -> [Int]
@@ -404,3 +371,63 @@ getBlockNumbers ((x,y):xs) listike =
   if x `elem` listike
     then getBlockNumbers xs listike
     else getBlockNumbers xs (x : listike)
+---------------------------------------------------------------------------
+{-getSolution:: [Table] -> Table -> [Table]
+getSolution vanadtabelid@(x:xs) tabel =
+  if (winCond tabel)
+    then vanadtabelid ++ [tabel]
+	else let kaigud = validMoves tabel
+	     in let uuedTabelid = teeMoveJaTagastaTabelid [] tabel kaigud
+		    in getSolutionAbi uuedTabelid (vanadtabelid ++ [tabel])
+		 move [move] tabel
+teeMoveJaTagastaTabelid:: [Table] -> Table -> [Move] -> [Table]
+teeMoveJaTagastaTabelid tabelid _ [] = tabelid
+teeMoveJaTagastaTabelid tabelid tabel (y:ys) =
+  let uustabel = move y tabel
+  in teeMoveJaTagastaTabelid (uustabel : tabelid) tabel ys
+  
+getSolutionAbi:: [Table] -> [Table] -> [Table]
+getSolutionAbi [] vanadtabelid = 
+getSolutionAbi (x:xs) vanadtabelid = 
+  getSolution vanadtabelid x
+  getSolutionAbi xs vanadtabelid
+  
+data GameTree = Win Table | Moves Table [(Move, GameTree)] 
+mkGameTree :: Table -> GameTree
+mkGameTree tabel =-}
+  
+
+---------------------------------------------------------------------------
+showSolution:: [Table] -> IO ()
+showSolution [] = do
+  putStrLn ("Lahendus leitud")
+showSolution (x:xs) = do
+  putStrLn (showT(x))
+  putStrLn ("-------------------------")
+  showSolution xs
+
+showSolution2:: [Table] -> Table -> [Move] -> [Table]
+showSolution2 vastus _ [] = vastus
+showSolution2 vastus tabel (x:xs) =
+  let Just(uustabel) = move x tabel
+  in showSolution2 (vastus ++ [uustabel]) uustabel xs
+---------------------------------------------------------------------------
+main = do  
+  contents <- readFile "laud.txt"
+  let Just(tabel) = readT contents
+  putStrLn (showT tabel)
+  putStrLn (prindiTabel tabel)
+  let vaartus = winCond tabel
+  let vaartus2 = isValidTable tabel
+  print vaartus
+  print vaartus2
+  putStrLn ((prindiTabel tabel))
+  let Just(minutabel) = move (2, 'D') tabel
+  putStrLn (prindiTabel minutabel)
+  putStrLn (showT minutabel)
+  --let valid = validMoves tabel
+  --print valid
+  --COMMENT: nii saab lahendust printida
+  let liigutused = [(5, 'R'), (5, 'L')]
+  let lol = showSolution2 [] tabel liigutused
+  showSolution lol
