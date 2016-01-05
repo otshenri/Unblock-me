@@ -85,6 +85,9 @@ addOneBlock number (x:xs) listike =
   in let uus = take xCordinate (listike !! yCordinate) ++ [(show(number) !! 0)] ++ drop (xCordinate + 1) (listike !! yCordinate)
      in addOneBlock number xs (take yCordinate listike ++ [uus] ++ drop (yCordinate + 1) listike)
 
+
+-----------------------------------------------------------------------------------------------------------------
+
 readT :: String -> Maybe Table
 readT sisu =
   let suurus = getSize (lines sisu)
@@ -132,17 +135,107 @@ getPointsFromSingleRow (x,y) number (t:ts) =
     then (x,y) : getPointsFromSingleRow (x+1,y) number ts
     else getPointsFromSingleRow (x+1,y) number ts
 
+
+-----------------------------------------------------------------------------------------------------------
+
 --for debugging
 prindiTabel:: Table -> String
 prindiTabel (T (x,y) (x2, y2) blokid) =
   show(x) ++ show(y) ++ show(x2) ++ show(y2) ++ show(blokid)
 
+
+
+type Move  = (Int, Char)
+move :: Move -> Table -> Maybe Table
+move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) (w:ws)) = 
+  case suund of
+    'U' -> if validatorU tabeel blokinimi == True
+      then Just(liigutamineU blokinimi tabeel (w:ws))
+      else error "U"
+    'D' -> if validatorD tabeel blokinimi == True
+      then Just(tabeel) 
+      else error "D"
+    'R' -> if validatorR tabeel blokinimi == True
+      then Just(tabeel)
+      else error "R"
+    'L' -> if validatorL tabeel blokinimi == True
+      then Just(tabeel)
+      else error "L"
+    '_' -> error "Vale suund - suundadeks on U, D, R ja L"
+
+
+
+validatorU :: Table -> Int -> Bool
+
+validatorU (T (x,y) (x2, y2) []) nimi = error "Selline plokk puudub"
+validatorU (T (x,y) (x2, y2) ((f,((a,b):hs)):ws)) nimi = 
+  if f == nimi
+    then kasPunktVaba (x,y) ((f,((a,b):hs)):ws) (rekurU ((a,b):hs) (a,999)) 
+    else validatorU (T (x,y) (x2, y2) ws) nimi
+
+rekurU :: [Point] -> Point -> Point
+rekurU [] (x,y) = (x,y-1) 
+rekurU ((a,b):hs) (x,y) =  
+  if x /= a
+    then error "Plokk on horistontaalis või mitte sirge - ei saa liigutada üles"
+    else if b < x 
+      then rekurU hs (a,b)
+      else rekurU hs (x,y) 
+
+
+
+kasPunktVaba :: Point -> [(Int,[Point])] -> Point -> Bool
+kasPunktVaba (x,y) [] (r,t) = True 
+kasPunktVaba (x,y) ((f,punnid):ws) (r,t) = 
+  if r >= x-1 || r == 0 || t == 0 || t >= x-1
+    then error "Läheb mänguplatsist välja"
+    else if abiRek punnid (r,t) == True
+      then kasPunktVaba (x,y) ws (r,t)
+      else error "Soovitud liigutus pole võimalik"
+
+
+abiRek :: [Point] -> Point -> Bool
+abiRek [] (x,y) = True
+abiRek ((a,b):hs) (x,y) = 
+  if x == a && y == b 
+    then False
+    else abiRek hs (x,y)
+
+
+
+liigutamineU :: Int -> Table -> [(Int,[Point])] -> Table
+--liigutamineU nimi (T (x,y) (x2,y2) []) irw = []
+liigutamineU nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
+  if f == nimi 
+    then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineU punnid))] ++ ws))
+    else liigutamineU nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
+
+
+asendamineU :: [Point] -> [Point]
+asendamineU [] = []
+asendamineU ((a,b):ws) = [] ++ [(a, b-1)] ++ asendamineU ws
+
+
+
+validatorD :: Table -> Int -> Bool
+validatorD (T (x,y) (x2, y2) (w:ws)) nimi = True
+
+validatorR :: Table -> Int -> Bool
+validatorR (T (x,y) (x2, y2) (w:ws)) nimi = True
+
+validatorL :: Table -> Int -> Bool
+validatorL (T (x,y) (x2, y2) (w:ws)) nimi = True
+
+
 main = do  
   contents <- readFile "laud.txt"
   let Just(tabel) = readT contents
-  let tabel2 = T (1,2) (3,4) [(5,[(6,7)])]
   putStrLn (showT tabel)
-  putStrLn (prindiTabel tabel)
+  putStrLn ((prindiTabel tabel))
+  let Just(minutabel) = move (4, 'U') tabel
+  putStrLn (prindiTabel minutabel)
+  putStrLn (showT minutabel)
+
 
 
 
