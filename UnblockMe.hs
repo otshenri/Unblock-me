@@ -148,9 +148,9 @@ prindiTabel (T (x,y) (x2, y2) blokid) =
 
 type Move  = (Int, Char)
 move :: Move -> Table -> Maybe Table
-move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) (w:ws)) = 
+move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) all@(w:ws)) = 
   case suund of
-    'U' -> if validatorU tabeel blokinimi == True
+    'U' -> if validatorU tabeel all blokinimi == True
       then Just(liigutamineU blokinimi tabeel [])
       else error "U"
     'D' -> if validatorD tabeel blokinimi == True
@@ -166,13 +166,13 @@ move (blokinimi, suund) tabeel@(T (x,y) (x2, y2) (w:ws)) =
 
 
 
-validatorU :: Table -> Int -> Bool
+validatorU :: Table -> [(Int,[Point])] -> Int -> Bool
 
-validatorU (T (x,y) (x2, y2) []) nimi = error "Selline plokk puudub"
-validatorU (T (x,y) (x2, y2) ((f,((a,b):hs)):ws)) nimi = 
+validatorU (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
+validatorU (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
   if f == nimi
-    then kasPunktVaba (x,y) ((f,((a,b):hs)):ws) (rekurU ((a,b):hs) (a,999)) 
-    else validatorU (T (x,y) (x2, y2) ws) nimi
+    then kasPunktVaba (x,y) listike (rekurU ((a,b):hs) (a,999)) 
+    else validatorU (T (x,y) (x2, y2) ws) listike nimi
 
 rekurU :: [Point] -> Point -> Point
 rekurU [] (x,y) = (x,y-1) 
@@ -228,7 +228,11 @@ validatorR (T (x,y) (x2, y2) (w:ws)) nimi = True
 validatorL :: Table -> Int -> Bool
 validatorL (T (x,y) (x2, y2) (w:ws)) nimi = True
 
-
+testik:: Table -> Point -> Bool
+testik (T (x,y) (x2, y2) blokid) (t,t1) = 
+  kasPunktVaba (x,y) blokid (t,t1)
+  
+  
 main = do  
   contents <- readFile "laud.txt"
   let Just(tabel) = readT contents
@@ -242,6 +246,10 @@ main = do
   let Just(minutabel) = move (2, 'U') tabel
   putStrLn (prindiTabel minutabel)
   putStrLn (showT minutabel)
+  --let kaspunn = testik tabel
+  --print (kaspunn (4,3))
+  
+
 
 
 
