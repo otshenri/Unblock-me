@@ -90,8 +90,16 @@ rekur (x:xs) tipp =
 		else rekur xs tipp
 	
 
+rndWG :: Int -> IO (WeightedGraph Int (Maybe Float))
+rndWG tipuarv = do
+  --g <- newStdGen
+  --let arv = randomR (1, 10) g
+  x <- randomRIO (-99 , 99) :: IO Int
+  print x
+  return ([0..(7)], [(1, ofFloat 2, 5)])
 
-
+randInRange :: Int -> Int -> IO Int
+randInRange a b = getStdRandom (randomR (a, b))
 
 {-
 lel :: (Dist b, Ix a) => WeightedGraph a b -> a -> Array a b
