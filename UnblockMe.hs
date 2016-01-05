@@ -184,21 +184,21 @@ validatorD (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi =
 
 
 
-validatorR :: Table -> [(Int,[Point])] -> Int -> Bool
-validatorR (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
-validatorR (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
-  if f == nimi
-    then kasPunktVaba (x,y) listike (rekurR ((a,b):hs) (999, b)) 
-    else validatorR (T (x,y) (x2, y2) ws) listike nimi 
-
-
-
 validatorL :: Table -> [(Int,[Point])] -> Int -> Bool
 validatorL (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
 validatorL (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
   if f == nimi
-    then kasPunktVaba (x,y) listike (rekurL ((a,b):hs) (0, b)) 
+    then kasPunktVaba (x,y) listike (rekurL ((a,b):hs) (999, b)) 
     else validatorL (T (x,y) (x2, y2) ws) listike nimi 
+
+
+
+validatorR :: Table -> [(Int,[Point])] -> Int -> Bool
+validatorR (T (x,y) (x2, y2) []) _ nimi = error "Selline plokk puudub"
+validatorR (T (x,y) (x2, y2) r@((f,((a,b):hs)):ws)) listike nimi = 
+  if f == nimi
+    then kasPunktVaba (x,y) listike (rekurR ((a,b):hs) (0, b)) 
+    else validatorR (T (x,y) (x2, y2) ws) listike nimi 
 
 
 -----------------------------------------------------------------------------------
@@ -223,24 +223,24 @@ rekurD ((a,b):hs) (x,y) =
       else rekurD hs (x,y)
 
 
-rekurR :: [Point] -> Point -> Point
-rekurR [] (x,y) = (x-1,y) 
-rekurR ((a,b):hs) (x,y) =  
+rekurL :: [Point] -> Point -> Point
+rekurL [] (x,y) = (x-1,y) 
+rekurL ((a,b):hs) (x,y) =  
   if y /= b
     then error "Plokk on vertikaalis või mitte sirge - ei saa liigutada paremale"
     else if a < x
-      then rekurR hs (a,b)
-      else rekurR hs (x,y)
+      then rekurL hs (a,b)
+      else rekurL hs (x,y)
 
 
-rekurL :: [Point] -> Point -> Point
-rekurL [] (x,y) = (x+1,y) 
-rekurL ((a,b):hs) (x,y) =  
+rekurR :: [Point] -> Point -> Point
+rekurR [] (x,y) = (x+1,y) 
+rekurR ((a,b):hs) (x,y) =  
   if y /= b
     then error "Plokk on vertikaalis või mitte sirge - ei saa liigutada vasakule"
     else if a > x
-      then rekurL hs (a,b)
-      else rekurL hs (x,y)
+      then rekurR hs (a,b)
+      else rekurR hs (x,y)
 
 ------------------------------------------------------------------------
 
@@ -292,21 +292,6 @@ asendamineD ((a,b):ws) = [(a, b+1)] ++ asendamineD ws
 
 ---------------------------------------------------------------------------
 
-liigutamineR :: Int -> Table -> [(Int,[Point])] -> Table
-liigutamineR nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
-  if f == nimi 
-    then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineR punnid))] ++ ws))
-    else liigutamineR nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
-
-
-asendamineR :: [Point] -> [Point]
-asendamineR [] = []
-asendamineR ((a,b):ws) = [(a-1, b)] ++ asendamineR ws
-
-
----------------------------------------------------------------------------
-
-
 liigutamineL :: Int -> Table -> [(Int,[Point])] -> Table
 liigutamineL nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
   if f == nimi 
@@ -316,7 +301,22 @@ liigutamineL nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
 
 asendamineL :: [Point] -> [Point]
 asendamineL [] = []
-asendamineL ((a,b):ws) = [(a+1, b)] ++ asendamineL ws
+asendamineL ((a,b):ws) = [(a-1, b)] ++ asendamineL ws
+
+
+---------------------------------------------------------------------------
+
+
+liigutamineR :: Int -> Table -> [(Int,[Point])] -> Table
+liigutamineR nimi (T (x,y) (x2, y2) ((f,punnid):ws)) irw =
+  if f == nimi 
+    then (T (x,y) (x2, y2) (irw ++ [(f, (asendamineR punnid))] ++ ws))
+    else liigutamineR nimi (T (x,y) (x2, y2) ws) (irw ++ [(f,punnid)])
+
+
+asendamineR :: [Point] -> [Point]
+asendamineR [] = []
+asendamineR ((a,b):ws) = [(a+1, b)] ++ asendamineR ws
 
 
 ---------------------------------------------------------------------------
@@ -339,7 +339,7 @@ main = do
   print vaartus
   print vaartus2
   putStrLn ((prindiTabel tabel))
-  let Just(minutabel) = move (4, 'L') tabel
+  let Just(minutabel) = move (0, 'R') tabel
   putStrLn (prindiTabel minutabel)
   putStrLn (showT minutabel)
   --let kaspunn = testik tabel
