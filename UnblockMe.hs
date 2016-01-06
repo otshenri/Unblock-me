@@ -14,7 +14,7 @@ import System.IO.Unsafe
 
 
 type Point = (Int, Int)
-data Table = T Point Point [(Int,[Point])]
+data Table = T Point Point [(Int,[Point])] deriving (Eq)
 
 --Mängulaud sõneks
 showT :: Table -> String
@@ -295,21 +295,22 @@ asendamineR ((a,b):ws) = [(a+1, b)] ++ asendamineR ws
 mangimine tabel = do
   putStrLn (showT tabel)
   let validmoved = validMoves tabel
+  putStrLn("\nVoimalikud käigud:")
   print validmoved
   putStrLn("Sisesta bloki number, mida soovid liigutada: ")
   s <- getLine
   let d = (read s :: Int)
-  putStrLn("Sisesta suuna täht - kas U(üles), D(alla), L(vasakule), R(paremale): ")
+  putStrLn("Sisesta suuna täht - kas U(üles), D(alla), L(vasakule), R(paremale), A(automaatne lopplahendus): ")
   f <- getLine
   let g = head f
-
-  
-  if (d, g) `elem` validmoved
-    then let Just(tabel2) = move(d, g) tabel
-         in if winCond tabel2 == True
-           then putStrLn("Võitsid")
-           else mangimine tabel2
-    else mangimine tabel
+  if g == 'A'
+    then putStrLn(showGT(mkGameTree (tabel)))
+    else if (d, g) `elem` validmoved
+      then let Just(tabel2) = move(d, g) tabel
+           in if winCond tabel2 == True
+             then putStrLn("Voitsid")
+             else mangimine tabel2
+      else mangimine tabel
 
 {-}
   let Just(tabel2) = move(d, g) tabel
@@ -321,21 +322,33 @@ mangimine tabel = do
 main = do
   contents <- readFile "laud.txt"
   let Just(tabel) = readT contents
-  putStrLn("Tere, mängite mänge UnBlock Me")
+  putStrLn("Tere, mängite mängu UnBlock Me")
   putStrLn("Mängu reeglid:")
   putStrLn("1)Peate liigutama blokke reeglite järgi - püstiseid blokke üles/alla, külili blokke paremale/vasakule")
-  putStrLn("2)Võitmiseks peab olema blokk 00 mängulaua paremal asuva augu ees")
+  putStrLn("2)Voitmiseks peab olema blokk 00 mängulaua paremal asuva augu ees")
   putStrLn("Lubatud käigud kuvatakse enne igat käiku ekraanil koos hetkel oleva mängulauaga")
   putStrLn("Bloki number peab olema numbrilisel kujul mängulaual esinevate blokkide seast")
   putStrLn("Bloki liigutamise suund peab olema kas U - üles, D - alla, R - paremale, L - vasakule")
   putStrLn("Mängulaud loetakse failist laud.txt")
   mangimine tabel
+  
+mai2 = do
+  contents <- readFile "laud.txt"
+  let Just(tabel) = readT contents
+  putStrLn(showT(tabel))
+  let puu = mkGameTree tabel
+  let puustring = showGT(puu)
+  putStrLn(puustring)
+  
+mai3 = do
+  contents <- readFile "laud.txt"
+  let Just(tabel) = readT contents
+  let kaigulist = [(1, 'D'), (0, 'R')]
+  showSolution3 tabel kaigulist
 
 
 -------------------------------------------------------------------  
-
-
- --Andmestruktuuri õigsuse kontroll
+--Andmestruktuuri õigsuse kontroll
 isValidTable :: Table -> Bool
 isValidTable (T (x,y) (x2, y2) blokid) =
   if x2 == 0 || y2 == 0 || x<2 || y<2
@@ -414,14 +427,71 @@ getSolutionAbi:: [Table] -> [Table] -> [Table]
 getSolutionAbi [] vanadtabelid = 
 getSolutionAbi (x:xs) vanadtabelid = 
   getSolution vanadtabelid x
-  getSolutionAbi xs vanadtabelid
-  
+  getSolutionAbi xs vanadtabelid-}
+
 data GameTree = Win Table | Moves Table [(Move, GameTree)] 
+
 mkGameTree :: Table -> GameTree
-mkGameTree tabel =-}
+mkGameTree tabel =
+  if winCond tabel
+    then Win tabel
+    else let moovid = validMoves tabel
+         in Moves tabel (mkGameTreeAbi [] tabel moovid)
+
+mkGameTreeAbi :: [(Move, GameTree)] -> Table -> [Move] -> [(Move, GameTree)] 
+mkGameTreeAbi vastus _ [] = vastus
+mkGameTreeAbi vastus tabel (x:xs) =
+  let Just(uustabel) = move x tabel
+  in mkGameTreeAbi ((x, (mkGameTree uustabel)): vastus) tabel xs
+
+{-bfsGameTree :: Gametree -> [Move] -> [Move]
+bfsGameTree (Win tabel) moved = moved
+bfsGameTree (Moves tabel ((liigutus, mangupuu):xs)) moved =
+  bfsGameTree mangupuu xs
+
+bfsGameTreeAbi:: [(Move, GameTree)] -> [Move]
+
+bfsGameTree:: [(GameTree,[Move])] -> [Move]-}
+  
+
+showGT:: GameTree -> String
+showGT (Moves tabel ((kaik, puu):xs)) =
+  showGT(puu)
+showGT (Win tabel) = showT(tabel) ++ "\nSEE ON VOIT!"
+
+{-leiavoit:: [Table] -> Table -> [Table]
+leiavoit vanadtabelid praegunetabel
+  | winCond praegunetabel = vanadtabelid
+  |(length moved)> 0 && ((uustabel1 `elem` vanadtabelid) == False) = leiavoit (vanadtabelid ++ [uustabel1]) (uustabel1)
+  |(length moved)> 0 && ((uustabel2 `elem` vanadtabelid) == False) = leiavoit (vanadtabelid ++ [uustabel2]) (uustabel2)
+
+  where moved = validMoves praegunetabel
+		Just(uustabel2) = move (moved !! 1) praegunetabel
+		Just(uustabel1) = move (moved !! 0) praegunetabel
+		Just(uustabel3) = (move (moved !! 2) praegunetabel)
+		Just(uustabel4) = (move (moved !! 3) praegunetabel)
+		Just(uustabel5) = (move (moved !! 4) praegunetabel)
+		Just(uustabel6) = (move (moved !! 5) praegunetabel)
+		Just(uustabel7) = (move (moved !! 6) praegunetabel)
+		Just(uustabel8) = (move (moved !! 7) praegunetabel)
+		Just(uustabel9) = (move (moved !! 8) praegunetabel)
+		Just(uustabel10) = (move (moved !! 9) praegunetabel)-}
+
+{-uusGameTree:: Table -> [Move]
+uusGameTree tabel = uusGameTreeAbi [] tabel
+
+uusGameTreeAbi:: [Move] -> Table -> [Move]
+uusGameTreeAbi moved tabel =
+  if winCond tabel
+    then moved
+	else let voimalikudmoved = validMoves tabel
+         in uusGameTreeAbi moved (move [Move] tabel)-}
+
+--bfsGameTree :: GameTree [Move] -> [(GameTree,[Move])] -> IO [Move]
   
 
 ---------------------------------------------------------------------------
+--Lahenduse näitamine kui on tabelite list
 showSolution:: [Table] -> IO ()
 showSolution [] = do
   putStrLn ("Lahendus leitud")
@@ -436,22 +506,12 @@ showSolution2 vastus tabel (x:xs) =
   let Just(uustabel) = move x tabel
   in showSolution2 (vastus ++ [uustabel]) uustabel xs
 ---------------------------------------------------------------------------
-{-main = do  
-  contents <- readFile "laud.txt"
-  let Just(tabel) = readT contents
-  putStrLn (showT tabel)
-  putStrLn (prindiTabel tabel)
-  let vaartus = winCond tabel
-  let vaartus2 = isValidTable tabel
-  print vaartus
-  print vaartus2
-  putStrLn ((prindiTabel tabel))
-  let Just(minutabel) = move (2, 'D') tabel
-  putStrLn (prindiTabel minutabel)
-  putStrLn (showT minutabel)
-  --let valid = validMoves tabel
-  --print valid
-  --COMMENT: nii saab lahendust printida
-  let liigutused = [(5, 'R'), (5, 'L')]
-  let lol = showSolution2 [] tabel liigutused
-  showSolution lol-}
+--Lahenduse näitamine kui on movede list
+showSolution3:: Table -> [Move] -> IO ()
+showSolution3 _ [] = do
+  putStrLn ("Lahendus leitud")
+showSolution3 tabel (x:xs) = do
+  let Just(uustabel) = move x tabel
+  putStrLn (showT uustabel)
+  putStrLn ("-------------------------")
+  showSolution3 uustabel xs
